@@ -1,2 +1,8 @@
-# FissionableBlockMod
-FissionableBlockMod is a mod of Paracraft. It provider a new type of block which is capable to split itself into 8 sub-blocks.
+# This is a paracraft plugin (Mod)
+
+Reference:
+- [How To Create Paracraft Mod](https://github.com/LiXizhi/NPLRuntime/wiki/TutorialParacraftMod)
+- [Download paracraft](http://www.paracraft.cn)
+
+
+
