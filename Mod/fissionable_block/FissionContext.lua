@@ -172,10 +172,12 @@ end
 
 function FissionContext:handleLeftClickScene(event, result)
 	local click_data = self:GetClickData();
+	echo(click_data)
 	if(event.ctrl_pressed) then
-		_guihelper.MessageBox("phf Im in");
+		--_guihelper.MessageBox("phf Im in");
 		worldName = ParaWorld.GetWorldName()
 		curWorld = ParaBlockWorld.GetWorld(worldName)
-		ret = ParaBlockWorld.SplitBlock(curWorld, 0, 0, 0, '123')
+		ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
+		echo(ret)
 	end
 end
