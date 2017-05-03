@@ -1,19 +1,17 @@
-﻿
+
 --[[
 Title: FissionContext
 Author(s): PHF
-Date: 2016.12
+Date: 2017.4
 Desc: Example of demo scene context
 use the lib:
 ------------------------------------------------------------
-NPL.load("(gl)Mod/ECM/FissionContext.lua");
-local DemoSceneContext = commonlib.gettable("Mod.ECM.DemoSceneContext");
-DemoSceneContext:ApplyToDefaultContext();
+NPL.load("(gl)Mod/fissionable_block/FissionContext.lua");
+local FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
+FissionContext:ApplyToDefaultContext();
 ------------------------------------------------------------
 ]]
 NPL.load("(gl)script/ide/System/Core/SceneContext.lua");
-NPL.load("(gl)script/ide/Json.lua");
-NPL.load("(gl)script/ide/System/Scene/BufferPicking.lua");
 NPL.load("(gl)script/ide/Storyboard/Storyboard.lua");
 NPL.load("(gl)script/ide/Display3D/SceneManager.lua");
 NPL.load("(gl)script/ide/Display3D/SceneNode.lua");
@@ -23,22 +21,16 @@ local SelectionManager = commonlib.gettable("MyCompany.Aries.Game.SelectionManag
 local ModManager = commonlib.gettable("Mod.ModManager");
 local CameraController = commonlib.gettable("MyCompany.Aries.Game.CameraController")
 local EntityManager = commonlib.gettable("MyCompany.Aries.Game.EntityManager");
-local BufferPicking = commonlib.gettable("System.Scene.BufferPicking");
 
-local default_opacity = global.OpacityOfShow;
-local hide_opacity = global.OpacityOfHide;
 
 local FissionContext = commonlib.inherit(commonlib.gettable("MyCompany.Aries.Game.SceneContext.BaseContext"), commonlib.gettable("Mod.FissionableBlock.FissionContext"));
 function FissionContext:ctor()
     self:EnableAutoCamera(true);
-	self.left_button_down = false;--鼠标左键是否按下的标记
-	self.currentY = 0;--鼠标按下时刻的Y坐标轴
-	self.currentHighLightObj = nil;
 end
 
 -- static method: use this demo scene context as default context
 function FissionContext:ApplyToDefaultContext()
-	FissionContext:ResetDefaultContext();
+	GameLogic.GetFilters():remove_all_filters("DefaultContext");
 	GameLogic.GetFilters():add_filter("DefaultContext", function(context)
 	   return FissionContext:new();
 	end);
@@ -47,6 +39,7 @@ end
 -- static method: reset scene context to vanila scene context
 function FissionContext:ResetDefaultContext()
 	GameLogic.GetFilters():remove_all_filters("DefaultContext");
+	GameLogic.ActivateDefaultContext();
 end
 
 function FissionContext:handleHookedMouseEvent(event)
@@ -62,27 +55,40 @@ end
 
 
 function FissionContext:mouseMoveEvent(event)
-	--FissionContext._super.mouseMoveEvent(self, event);
-	--echo(event)
-	--print(string.format("phf --- mouse move event: x=%d,y=%d",event.x,event.y));
-	--如果按着鼠标中键 则垂直移动摄像机
-	if(self.left_button_down) then
-
-	end
+	FissionContext._super.mouseMoveEvent(self, event);
 	if(event:isAccepted()) then
 		return
 	end
 end
 
 function FissionContext:mouseReleaseEvent(event)
-	--FissionContext._super.mouseReleaseEvent(self, event);
-	if(event.mouse_button == "left") then
-		local result = self:CheckMousePick();
-		if(result and result.entity) then
-        end
-	end
+	FissionContext._super.mouseReleaseEvent(self, event);
 	if(event:isAccepted()) then
 		return
+	end
+	local click_data = self:GetClickData();
+	if(click_data.selector) then
+		if(click_data.selector:OnUpdate() == "selected") then
+			self.is_click = nil;
+		end
+		click_data.selector = nil;
+	end
+
+	if(self.is_click) then
+		local result = self:CheckMousePick();
+		local isClickProcessed;
+		
+		-- escape alt key for entity event, since alt key is for picking entity. 
+		if( not event.alt_pressed and result and result.obj and result.entity and (not result.block_id or result.block_id == 0)) then
+			-- for entities. 
+			isClickProcessed = GameLogic.GetPlayerController():OnClickEntity(result.entity, result.blockX, result.blockY, result.blockZ, event.mouse_button);
+		end
+
+		if(isClickProcessed) then	
+			-- do nothing
+		elseif(event.mouse_button == "left") then
+			self:handleLeftClickScene(event,result);
+		end
 	end
 end
 
@@ -110,12 +116,8 @@ end
 function FissionContext:OnUnselect()
 end
 
-function FissionContext:handleMiddleClickScene(event, result)
-	self.middle_button_down = false;
-end
-
 function FissionContext:mousePressEvent(event)
-	--FissionContext._super.mousePressEvent(self, event);
+	FissionContext._super.mousePressEvent(self, event);
 	if(event.mouse_button == "left") then
 		--print("phf --- left button down");
 		local result = self:CheckMousePick();
@@ -168,3 +170,12 @@ function FissionContext:CheckMousePick()
 	end
 end
 
+function FissionContext:handleLeftClickScene(event, result)
+	local click_data = self:GetClickData();
+	if(event.ctrl_pressed) then
+		_guihelper.MessageBox("phf Im in");
+		worldName = ParaWorld.GetWorldName()
+		curWorld = ParaBlockWorld.GetWorld(worldName)
+		ret = ParaBlockWorld.SplitBlock(curWorld, 0, 0, 0, '123')
+	end
+end

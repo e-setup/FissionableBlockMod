@@ -1,4 +1,4 @@
-﻿--[[
+--[[
 Title: DemoItem
 Author(s):  phf
 Date: 2017.04.10
@@ -36,9 +36,9 @@ function ItemFission:init()
 				item_class="ItemFissionable",
 				text="可分裂方块",
 				name="ItemFissionable",
-				icon = "Texture/blocks/bookshelf_three.png",
+				icon = "Texture/blocks/snow.png",
 				threeSideTex = "true",
-				texture="Texture/blocks/bookshelf_three.png",
+				texture="Texture/blocks/snow.png",
 				obstruction="true",
 				solid="true",
 				cubeMode="true",
@@ -65,7 +65,7 @@ function ItemFission:ShowPropertyPage()
 	if(not page) then
 		print("phf i'm in");
 		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
-        page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html"});
+        page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
         commonlib.setfield("ItemFission.PropertyPage", page);
         page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
         --ParaUI.GetUIObject("ItemFission.PropertyPage").zorder = 1002;
@@ -76,7 +76,7 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 	--_guihelper.MessageBox("test");
 	if(not current_block_status) then
 		self:ShowPropertyPage();
-		--return;
+		return;
 	end
 
 	if (itemStack and itemStack.count == 0) then
@@ -84,54 +84,22 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 	elseif (entityPlayer and not entityPlayer:CanPlayerEdit(x,y,z, data, itemStack)) then
 		return;
 	elseif (self:CanPlaceOnSide(x,y,z,side, data, side_region, entityPlayer, itemStack)) then
-		-- 4096 is hard coded
-		if(self.id and self.id > 4096) then
-			if(not self.max_count or self:GetInWorldCount() < self.max_count) then
-				local facing;
-				if(self:HasFacing()) then
-					facing =  ParaScene.GetPlayer():GetFacing();
-				end
-				local bCreated, entityCreated = self:OnCreate({blockX = x, blockY = y, blockZ = z, facing = facing, side=side, itemStack = itemStack});
-				if(bCreated and itemStack) then
+		local block_id = self.block_id;
+		local block_template = block_types.get(block_id);
+		if(block_template) then
+			data = data or block_template:GetMetaDataFromEnv(x, y, z, side, side_region);
+			--echo(data)
+			--[[
+			if(BlockEngine:SetBlock(x, y, z, block_id, data, 3)) then
+				block_template:play_create_sound();
+				_guihelper.MessageBox("fsdds");
+				block_template:OnBlockPlacedBy(x,y,z, entityPlayer);
+				if(itemStack) then
 					itemStack.count = itemStack.count - 1;
 				end
-				return true, entityCreated;
-			else
-				if(self.max_count == 1) then
-					-- move it if there is only one. 
-					local entities = EntityManager.GetEntitiesByItemID(self.id);
-					if(entities) then
-						entities[1]:SetBlockPos(x,y,z);
-					else
-						self:OnCreate({blockX = x, blockY = y, blockZ = z, facing = 0, side=side});
-					end
-					return true;
-				else
-					_guihelper.MessageBox(string.format("世界中最多可以放置%d个[%s]. 已经超出上限", self.max_count or 0,  self.text or ""));
-				end
-			end
-		else
-			local block_id = self.block_id;
-			local block_template = block_types.get(block_id);
-			echo("phf ---------------------- ")
-			echo(block_id)
-			echo(block_template)
-			echo("phf ---------------------- end")
-			if(block_template) then
-				data = data or block_template:GetMetaDataFromEnv(x, y, z, side, side_region);
-				echo(data)
-				--[[
-				if(BlockEngine:SetBlock(x, y, z, block_id, data, 3)) then
-					block_template:play_create_sound();
-					_guihelper.MessageBox("fsdds");
-					block_template:OnBlockPlacedBy(x,y,z, entityPlayer);
-					if(itemStack) then
-						itemStack.count = itemStack.count - 1;
-					end
-				end]]
-				ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
-				return true;
-			end
+			end]]
+			ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
+			return true;
 		end
 	end
 end
@@ -154,6 +122,7 @@ function ItemFission:OnDeSelect()
 		page:Close();
 		--echo(page);
 	end
+	current_block_status = nil;
 	commonlib.setfield("ItemFission.PropertyPage", nil);
 	GameLogic.SetStatus(nil);
 end
@@ -190,4 +159,9 @@ function ItemFission.GetTextureList()
 		{text="西瓜皮",value="water_mellon_skin"},
 	};
 	return texture_table;
+end
+
+--需要传入{type=0|1,color=value,textureid=id}
+function ItemFission.SetProperty(property)
+	current_block_status = property;	
 end

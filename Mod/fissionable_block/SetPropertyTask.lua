@@ -1,4 +1,4 @@
-﻿--[[
+--[[
 use the lib:
 ------------------------------------------------------------
 NPL.load("(gl)Mod/NPLCAD/SetPropertyTask.lua");
@@ -10,6 +10,9 @@ task:Run();
 NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/UndoManager.lua");
 NPL.load("(gl)script/ide/math/vector.lua");
 NPL.load("(gl)script/ide/System/Windows/Keyboard.lua");
+NPL.load("(gl)Mod/fissionable_block/FissionContext.lua");
+
+local FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
 local Keyboard = commonlib.gettable("System.Windows.Keyboard");
 local UndoManager = commonlib.gettable("MyCompany.Aries.Game.UndoManager");
 local vector3d = commonlib.gettable("mathlib.vector3d");
@@ -89,17 +92,19 @@ end
 function SetPropertyTask:Run()
 	curInstance = self;
 	self.finished = false;
-
-	self:LoadSceneContext();
-	self:GetSceneContext():setMouseTracking(true);
-	self:GetSceneContext():setCaptureMouse(true);
-	self:ShowPage();
+	--_guihelper.MessageBox("fdfdfhdjfkdh js phf 2");
+	FissionContext:ApplyToDefaultContext();
+	--self:LoadSceneContext();
+	--self:GetSceneContext():setMouseTracking(true);
+	--self:GetSceneContext():setCaptureMouse(true);
+	--self:ShowPage();
 end
 
 function SetPropertyTask:OnExit()
 	self:SetFinished();
-	self:UnloadSceneContext();
-	self:CloseWindow();
+	--self:UnloadSceneContext();
+	FissionContext:ResetDefaultContext();
+	--self:CloseWindow();
 	curInstance = nil;
 end
 

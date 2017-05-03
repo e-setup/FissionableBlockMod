@@ -1,31 +1,45 @@
-﻿<pe:mcml>
-<script type="text/npl" src="SetPropertyTask.lua" refresh="true">
+<pe:mcml>
+<script type="text/npl" src="SetPropertyTask.lua" refresh="false">
 <![CDATA[
     NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
     ItemFissionable = commonlib.gettable("Mod.Fissionable.ItemFissionable");
-
+    local color = {r=255,b=255,g=255}
+    local textureid = nil;
+    local type = 0;
     function testdsds(name)
         _guihelper.MessageBox("dsfdgsr gr sg ");
     end
 
     function hidepage(name)
-        local page = commonlib.getfield("ItemFission.PropertyPage");
-	    if(page) then 
-		    page:Close();
-		    --echo(page);
-	    end
+        --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
+        ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+        Page:Close();
+    end
+
+    function ColorChanged(r,g,b)
+        if(r and g and b) then
+	        r = r/255;
+	        g = g/255;
+	        b = b/255;
+            color = {r=r,g=g,b=b}
+        end
+    end
+
+    function TextureChanged(name)
+        textureid = Page("#"..name):GetValue();
+        _guihelper.MessageBox(textureid);
     end
 ]]>
 </script>
 <aries:window mode="thin" style='width:250px;height:250px;color:#ffffff;' title='<%=L"可分裂方块属性" %>'>
     <div style="margin:10px;width:230px">
         <div><input type="radio" checked="checked" style="margin:2px" name="tex_type" id="color" value="0"/><div style="float:left;" for="color"><%=L"颜色"%></div></div>
-        <pe:colorpicker name="dsdsd" version="1" style="width:180px;"/>
+        <pe:colorpicker name="dsdsd" version="1" style="width:180px;" onchange="ItemFissionable"/>
     </div>
     <hr />
     <div style="margin:10px;width:230px">
         <div><input type="radio" style="margin:2px" name="tex_type" id="material" value="1"/><div style="float:left;" for="material"><%=L"材质"%></div></div>
-        <select name="texture" onselect="" class="mc_text" DataSource='<%=ItemFissionable.GetTextureList()%>' style="width:200px;height:30px;"/>
+        <select name="texture" onselect="TextureChanged()" AllowUserEdit="false" class="mc_text" DataSource='<%=ItemFissionable.GetTextureList()%>' style="width:200px;height:30px;"/>
     </div>
     <div style="margin:10px;width:230px">
         <input type="button" name="okButton" style="margin-left:60px;width:100px;height:30px;color:#ffffff;" value="确定" class="mc_small_button" onclick="hidepage()"/>
