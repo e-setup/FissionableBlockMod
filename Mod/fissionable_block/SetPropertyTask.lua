@@ -33,6 +33,7 @@ SetPropertyTask.is_top_level = true;
 function SetPropertyTask:ctor()
 	self.position = vector3d:new(0,0,0);
 	self.transformMode = false;
+	self.sceneContext = FissionContext;
 end
 
 function SetPropertyTask:SetItemStack(itemStack)
@@ -94,7 +95,7 @@ function SetPropertyTask:Run()
 	self.finished = false;
 	--_guihelper.MessageBox("fdfdfhdjfkdh js phf 2");
 	FissionContext:ApplyToDefaultContext();
-	--self:LoadSceneContext();
+	self:LoadSceneContext();
 	--self:GetSceneContext():setMouseTracking(true);
 	--self:GetSceneContext():setCaptureMouse(true);
 	--self:ShowPage();
@@ -102,8 +103,8 @@ end
 
 function SetPropertyTask:OnExit()
 	self:SetFinished();
-	--self:UnloadSceneContext();
 	FissionContext:ResetDefaultContext();
+	self:UnloadSceneContext();
 	--self:CloseWindow();
 	curInstance = nil;
 end
