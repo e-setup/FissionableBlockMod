@@ -101,10 +101,13 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 			worldName = ParaWorld.GetWorldName();
 			curWorld = ParaBlockWorld.GetWorld(worldName);
 			if(current_block_status.type == 0) then
-				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",0xffff00);
+				echo(current_block_status);
+				local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
+				local color = r+math.ldexp(g, 8)+math.ldexp(g, 16);
+				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",r+math.ldexp(g, 8)+math.ldexp(g, 16));
+				print("set blockcolor to "..color.." result:");
+				echo(ret);
 			end
-			print("set blockcolor result:");
-			echo(ret);
 			return true;
 		end
 	end
@@ -118,7 +121,7 @@ end
 -- virtual function: when selected in right hand
 function ItemFission:OnSelect(itemStack)
 	ItemFission._super.OnSelect(self, itemStack);
-	--GameLogic.SetStatus(L"-_- !!");
+	GameLogic.SetStatus(L"按住ctrl+左键进行分裂，按住ctrl+右键设置属性，点击工具栏item设置默认方块属性");
 end
 
 function ItemFission:OnDeSelect()

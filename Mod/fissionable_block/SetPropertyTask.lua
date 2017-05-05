@@ -229,6 +229,7 @@ function SetPropertyTask:mouseWheelEvent(event)
 end
 
 function SetPropertyTask:keyPressEvent(event)
+	--[[
 	local dik_key = event.keyname;
 	if(dik_key == "DIK_ADD" or dik_key == "DIK_EQUALS") then
 		-- increase scale
@@ -241,5 +242,5 @@ function SetPropertyTask:keyPressEvent(event)
 	elseif(dik_key == "DIK_Y")then
 		UndoManager.Redo();
 	end
-	self:GetSceneContext():keyPressEvent(event);
+	self:GetSceneContext():keyPressEvent(event);]]
 end
