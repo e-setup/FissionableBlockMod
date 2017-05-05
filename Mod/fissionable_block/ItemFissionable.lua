@@ -104,7 +104,7 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 				echo(current_block_status);
 				local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
 				local color = r+math.ldexp(g, 8)+math.ldexp(g, 16);
-				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",r+math.ldexp(g, 8)+math.ldexp(g, 16));
+				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24));
 				print("set blockcolor to "..color.." result:");
 				echo(ret);
 			end
@@ -115,7 +115,7 @@ end
 
 -- called whenever this item is clicked on the user interface when it is holding in hand of a given player (current player). 
 function ItemFission:OnClickInHand(itemStack, entityPlayer)
-	--_guihelper.MessageBox("sdsdsd");
+	self:ShowPropertyPage();
 end
 
 -- virtual function: when selected in right hand
