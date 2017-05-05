@@ -6,13 +6,11 @@
     local color = {r=255,b=255,g=255}
     local textureid = nil;
     local type = 0;
-    function testdsds(name)
-        _guihelper.MessageBox("dsfdgsr gr sg ");
-    end
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
         ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+        commonlib.setfield("ItemFission.PropertyPage", nil);
         Page:Close();
     end
 
@@ -27,18 +25,22 @@
 
     function TextureChanged(name)
         textureid = Page("#"..name):GetValue();
-        _guihelper.MessageBox(textureid);
+        --_guihelper.MessageBox(textureid);
+    end
+
+    function OnTypeChange(name)
+        type = Page:GetUIValue("tex_type");
     end
 ]]>
 </script>
 <aries:window mode="thin" style='width:250px;height:250px;color:#ffffff;' title='<%=L"可分裂方块属性" %>'>
     <div style="margin:10px;width:230px">
-        <div><input type="radio" checked="checked" style="margin:2px" name="tex_type" id="color" value="0"/><div style="float:left;" for="color"><%=L"颜色"%></div></div>
-        <pe:colorpicker name="dsdsd" version="1" style="width:180px;" onchange="ItemFissionable"/>
+        <div><input type="radio" checked="checked" onclick="OnTypeChange()" style="margin:2px" name="tex_type" id="color" value="0"/><div style="float:left;" for="color"><%=L"颜色"%></div></div>
+        <pe:colorpicker name="dsdsd" version="1" style="width:180px;" onchange="ColorChanged()"/>
     </div>
     <hr />
     <div style="margin:10px;width:230px">
-        <div><input type="radio" style="margin:2px" name="tex_type" id="material" value="1"/><div style="float:left;" for="material"><%=L"材质"%></div></div>
+        <div><input type="radio" style="margin:2px" onclick="OnTypeChange()" name="tex_type" id="material" value="1"/><div style="float:left;" for="material"><%=L"材质"%></div></div>
         <select name="texture" onselect="TextureChanged()" AllowUserEdit="false" class="mc_text" DataSource='<%=ItemFissionable.GetTextureList()%>' style="width:200px;height:30px;"/>
     </div>
     <div style="margin:10px;width:230px">

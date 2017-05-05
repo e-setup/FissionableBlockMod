@@ -160,7 +160,7 @@ function FissionContext:handleLeftClickScene(event, result)
 						worldName = ParaWorld.GetWorldName()
 						curWorld = ParaBlockWorld.GetWorld(worldName)
 						ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
-						echo(ret)
+						echo("split block result:"..ret)
 				else
 					-- left click to delete the current point
 					if(result and result.blockX) then
@@ -172,7 +172,11 @@ function FissionContext:handleLeftClickScene(event, result)
 							task:Run();
 						else
 							if(event.dragDist and event.dragDist<15) then
-								self:TryDestroyBlock(result);
+								worldName = ParaWorld.GetWorldName()
+								curWorld = ParaBlockWorld.GetWorld(worldName)
+								ret = ParaBlockWorld.DestroyBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
+								echo("destory block result:"..ret)
+								--self:TryDestroyBlock(result);
 							end
 						end
 					end
@@ -194,6 +198,50 @@ function FissionContext:handleLeftClickScene(event, result)
 		else
 			-- long hold left click to delete the block
 			self:TryDestroyBlock(result, true);
+		end
+	end
+end
+
+function FissionContext:handleRightClickScene(event, result)
+	result = result or SelectionManager:GetPickingResult();
+	local click_data = self:GetClickData();
+	local isProcessed;
+	if(not isProcessed and result and result.blockX) then
+		if(click_data.right_holding_time<400) then
+			if(not event.shift_pressed and not event.alt_pressed and not event.ctrl_pressed and result.block_id and result.block_id>0) then
+				-- if it is a right click, first try the game logics if it is processed. such as an action neuron block.
+				if(result.entity and result.entity:IsBlockEntity() and result.entity:GetBlockId() == result.block_id) then
+					-- this fixed a bug where block entity is larger than the block like the physics block model.
+					local bx, by, bz = result.entity:GetBlockPos();
+					isProcessed = GameLogic.GetPlayerController():OnClickBlock(result.block_id, bx, by, bz, event.mouse_button, EntityManager.GetPlayer(), result.side);
+				else
+					isProcessed = GameLogic.GetPlayerController():OnClickBlock(result.block_id, result.blockX, result.blockY, result.blockZ, event.mouse_button, EntityManager.GetPlayer(), result.side);
+				end
+			elseif(event.ctrl_pressed and result and result.blockX) then
+				isProcessed = true;
+				_guihelper.MessageBox("trying to show property page, but API not implemented!");
+				--worldName = ParaWorld.GetWorldName()
+				--curWorld = ParaBlockWorld.GetWorld(worldName)
+				--ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
+				--echo(ret)
+			end
+		end
+	end
+	if(not isProcessed and click_data.right_holding_time<400) then
+		local player = EntityManager.GetPlayer();
+		if(player) then
+			local itemStack = player.inventory:GetItemInRightHand();
+			if(itemStack) then
+				local newStack, hasHandled = itemStack:OnItemRightClick(player);
+				if(hasHandled) then
+					isProcessed = hasHandled;
+				end
+			end
+		end
+	end
+	if(not isProcessed and click_data.right_holding_time<400 and result and result.blockX) then
+		if(GameMode:CanRightClickToCreateBlock()) then
+			self:OnCreateBlock(result);
 		end
 	end
 end

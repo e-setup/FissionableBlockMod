@@ -63,11 +63,10 @@ end
 function ItemFission:ShowPropertyPage()
 	local page = commonlib.getfield("ItemFission.PropertyPage");
 	if(not page) then
-		print("phf i'm in");
 		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
         page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
-        commonlib.setfield("ItemFission.PropertyPage", page);
         page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
+		commonlib.setfield("ItemFission.PropertyPage", page);
         --ParaUI.GetUIObject("ItemFission.PropertyPage").zorder = 1002;
 	end
 end
@@ -99,6 +98,13 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 				end
 			end]]
 			ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
+			worldName = ParaWorld.GetWorldName();
+			curWorld = ParaBlockWorld.GetWorld(worldName);
+			if(current_block_status.type == 0) then
+				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",0xffff00);
+			end
+			print("set blockcolor result:");
+			echo(ret);
 			return true;
 		end
 	end
@@ -163,5 +169,14 @@ end
 
 --需要传入{type=0|1,color=value,textureid=id}
 function ItemFission.SetProperty(property)
-	current_block_status = property;	
+	if(property) then
+		if(property.type and property.type ~= 0) then
+			_guihelper.MessageBox("暂时不支持纹理贴图设置!");
+			current_block_status = nil;
+			return;
+		end
+		current_block_status = property;
+	else
+		_guihelper.MessageBox("参数有误!");
+	end
 end
