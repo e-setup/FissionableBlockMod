@@ -160,7 +160,8 @@ function FissionContext:handleLeftClickScene(event, result)
 						worldName = ParaWorld.GetWorldName()
 						curWorld = ParaBlockWorld.GetWorld(worldName)
 						ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
-						echo("split block result:"..ret)
+						echo("split block result:")
+						echo(ret)
 				else
 					-- left click to delete the current point
 					if(result and result.blockX) then
@@ -174,7 +175,7 @@ function FissionContext:handleLeftClickScene(event, result)
 							if(event.dragDist and event.dragDist<15) then
 								worldName = ParaWorld.GetWorldName()
 								curWorld = ParaBlockWorld.GetWorld(worldName)
-								ret = ParaBlockWorld.DestroyBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
+								ret = ParaBlockWorld.DestroyBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, "")
 								echo("destory block result:"..ret)
 								--self:TryDestroyBlock(result);
 							end

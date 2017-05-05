@@ -10,13 +10,14 @@
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
         ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
-        commonlib.setfield("ItemFission.PropertyPage", nil);
+        ItemFissionable.ClosePropertyPage();
         Page:Close();
     end
 
     function ColorChanged(r,g,b)
         if(r and g and b) then
             color = {r=r,g=g,b=b}
+            ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
         end
     end
 
@@ -28,12 +29,14 @@
     function OnTypeChange(name)
         type = Page:GetUIValue("tex_type");
     end
+
+    Page:SetNodeValue("blockcolor",ItemFissionable.GetCurrentColor());
 ]]>
 </script>
 <aries:window mode="thin" style='width:250px;height:250px;color:#ffffff;' title='<%=L"可分裂方块属性" %>'>
     <div style="margin:10px;width:230px">
         <div><input type="radio" checked="checked" onclick="OnTypeChange()" style="margin:2px" name="tex_type" id="color" value="0"/><div style="float:left;" for="color"><%=L"颜色"%></div></div>
-        <pe:colorpicker name="dsdsd" version="1" style="width:180px;" onchange="ColorChanged()"/>
+        <pe:colorpicker name="blockcolor" version="1" style="width:180px;" onchange="ColorChanged()"/>
     </div>
     <hr />
     <div style="margin:10px;width:230px">

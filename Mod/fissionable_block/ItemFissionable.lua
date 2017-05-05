@@ -19,6 +19,7 @@ local ItemFission = commonlib.inherit(commonlib.gettable("MyCompany.Aries.Game.I
 block_types.RegisterItemClass("ItemFissionable", ItemFission);
 
 local current_block_status = nil;
+local page = nil;
 
 function ItemFission:ctor()
 	self.PageCtrl = nil;
@@ -61,14 +62,31 @@ function ItemFission:init()
 end
 
 function ItemFission:ShowPropertyPage()
-	local page = commonlib.getfield("ItemFission.PropertyPage");
 	if(not page) then
 		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
         page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
         page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
-		commonlib.setfield("ItemFission.PropertyPage", page);
-        --ParaUI.GetUIObject("ItemFission.PropertyPage").zorder = 1002;
 	end
+	if(current_block_status) then
+		local color = string.format("%d %d %d", current_block_status.color.r,
+		 current_block_status.color.g, current_block_status.color.b);
+		print("phf I am in ShowPropertyPage:"..color);
+		--echo(page);
+	end
+end
+
+function ItemFission:GetCurrentColor()
+	if(current_block_status) then
+		local color = string.format("%d %d %d", current_block_status.color.r,
+		 current_block_status.color.g, current_block_status.color.b);
+		print("phf I am in ShowPropertyPage:"..color);
+		return color;
+	end
+	return "255 255 255";
+end
+
+function ItemFission:ClosePropertyPage()
+	page = nil;
 end
 
 function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_region)
@@ -121,18 +139,16 @@ end
 -- virtual function: when selected in right hand
 function ItemFission:OnSelect(itemStack)
 	ItemFission._super.OnSelect(self, itemStack);
-	GameLogic.SetStatus(L"按住ctrl+左键进行分裂，按住ctrl+右键设置属性，点击工具栏item设置默认方块属性");
+	GameLogic.SetStatus(L"点击左键消除，按住ctrl+左键进行分裂，按住ctrl+右键设置属性，点击工具栏item设置默认方块属性");
 end
 
 function ItemFission:OnDeSelect()
 	ItemFission._super.OnDeSelect(self);
-	local page = commonlib.getfield("ItemFission.PropertyPage");
 	if(page) then 
 		page:Close();
-		--echo(page);
 	end
 	current_block_status = nil;
-	commonlib.setfield("ItemFission.PropertyPage", nil);
+	page = nil;
 	GameLogic.SetStatus(nil);
 end
 
