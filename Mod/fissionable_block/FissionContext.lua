@@ -13,6 +13,10 @@ FissionContext:ApplyToDefaultContext();
 ]]
 NPL.load("(gl)script/apps/Aries/Creator/Game/SceneContext/BaseContext.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/UndoManager.lua");
+NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
+
+
+local ItemFissionable = commonlib.gettable("Mod.Fissionable.ItemFissionable");
 local UndoManager = commonlib.gettable("MyCompany.Aries.Game.UndoManager");
 local GameLogic = commonlib.gettable("MyCompany.Aries.Game.GameLogic")
 local GameMode = commonlib.gettable("MyCompany.Aries.Game.GameLogic.GameMode");
@@ -219,8 +223,15 @@ function FissionContext:handleRightClickScene(event, result)
 					isProcessed = GameLogic.GetPlayerController():OnClickBlock(result.block_id, result.blockX, result.blockY, result.blockZ, event.mouse_button, EntityManager.GetPlayer(), result.side);
 				end
 			elseif(event.ctrl_pressed and result and result.blockX) then
+				local target_block = {};
+				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
+				local worldName = ParaWorld.GetWorldName();
+				local curWorld = ParaBlockWorld.GetWorld(worldName);
+				target_block.level= "";--ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+				commonlib.setfield("Mod.Fissionable.target_block",target_block);
+				ItemFissionable.ShowPropertyPage();
 				isProcessed = true;
-				_guihelper.MessageBox("trying to show property page, but API not implemented!");
+				--_guihelper.MessageBox("trying to show property page, but API not implemented!");
 				--worldName = ParaWorld.GetWorldName()
 				--curWorld = ParaBlockWorld.GetWorld(worldName)
 				--ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')

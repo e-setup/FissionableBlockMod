@@ -70,7 +70,7 @@ function ItemFission:ShowPropertyPage()
 	if(current_block_status) then
 		local color = string.format("%d %d %d", current_block_status.color.r,
 		 current_block_status.color.g, current_block_status.color.b);
-		print("phf I am in ShowPropertyPage:"..color);
+		--print("phf I am in ShowPropertyPage:"..color);
 		--echo(page);
 	end
 end
@@ -79,13 +79,26 @@ function ItemFission:GetCurrentColor()
 	if(current_block_status) then
 		local color = string.format("%d %d %d", current_block_status.color.r,
 		 current_block_status.color.g, current_block_status.color.b);
-		print("phf I am in ShowPropertyPage:"..color);
+		--print("phf I am in ShowPropertyPage:"..color);
 		return color;
 	end
 	return "255 255 255";
 end
 
 function ItemFission:ClosePropertyPage()
+    local target_block = commonlib.getfield("Mod.Fissionable.target_block");
+    if(target_block) then
+        local worldName = ParaWorld.GetWorldName();
+		local curWorld = ParaBlockWorld.GetWorld(worldName);
+		if(type == 0) then
+			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
+			local color = r+math.ldexp(g, 8)+math.ldexp(g, 16);
+            ParaBlockWorld.SetBlockColor(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,color);
+        else -- !!TODO:设置纹理未完成
+            ParaBlockWorld.SetBlockTexture(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,"");
+		end
+    end
+	commonlib.getfield("Mod.Fissionable.target_block",nil);
 	page = nil;
 end
 
@@ -116,8 +129,8 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 				end
 			end]]
 			ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
-			worldName = ParaWorld.GetWorldName();
-			curWorld = ParaBlockWorld.GetWorld(worldName);
+			local worldName = ParaWorld.GetWorldName();
+			local curWorld = ParaBlockWorld.GetWorld(worldName);
 			if(current_block_status.type == 0) then
 				echo(current_block_status);
 				local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
