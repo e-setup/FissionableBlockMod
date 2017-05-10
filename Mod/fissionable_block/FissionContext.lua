@@ -180,7 +180,7 @@ function FissionContext:handleLeftClickScene(event, result)
 								worldName = ParaWorld.GetWorldName()
 								curWorld = ParaBlockWorld.GetWorld(worldName)
 								ret = ParaBlockWorld.DestroyBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, "")
-								echo("destory block result:"..ret)
+								--echo("destory block result:"..ret)
 								--self:TryDestroyBlock(result);
 							end
 						end
@@ -227,17 +227,23 @@ function FissionContext:handleRightClickScene(event, result)
 				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
 				--!!TODO:获取当前方块是使用贴图还是颜色
 				target_block.type = 0; -- 贴图暂未实现 目前写定为使用颜色
+				--local bit = require "bit";
+				
 				local worldName = ParaWorld.GetWorldName();
 				local curWorld = ParaBlockWorld.GetWorld(worldName);
-				target_block.level= ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+				
+				target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+				local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
+				--print("phf getblockcolor = "..color);
+				--color = 0x00010203;
+				local b = bit.band(color,0x000000ff);
+				local g = bit.band(bit.rshift(color, 8),0x000000ff);
+				local r = bit.band(bit.rshift(color, 16),0x000000ff);
+				--print(string.format("%d %d %d",r,g,b));
+				ItemFissionable.SetProperty({type=0,color={r=r,g=g,b=b}});
 				commonlib.setfield("Mod.Fissionable.target_block",target_block);
 				ItemFissionable.ShowPropertyPage();
 				isProcessed = true;
-				--_guihelper.MessageBox("trying to show property page, but API not implemented!");
-				--worldName = ParaWorld.GetWorldName()
-				--curWorld = ParaBlockWorld.GetWorld(worldName)
-				--ret = ParaBlockWorld.SplitBlock(curWorld, click_data.last_select_block.blockX, click_data.last_select_block.blockY, click_data.last_select_block.blockZ, '0')
-				--echo(ret)
 			end
 		end
 	end
