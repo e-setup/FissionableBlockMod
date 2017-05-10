@@ -6,16 +6,20 @@
     local color = {r=255,b=255,g=255}
     local textureid = nil;
     local type = 0;
+    local should_update = false;
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
-        ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+        if(should_update) then
+            ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+        end
         ItemFissionable.ClosePropertyPage();
         Page:Close();
     end
 
     function ColorChanged(r,g,b)
         if(r and g and b) then
+            should_update = true;
             color = {r=r,g=g,b=b}
             ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
         end
@@ -27,6 +31,7 @@
     end
 
     function OnTypeChange(name)
+        should_update = true;
         type = Page:GetUIValue("tex_type");
     end
 

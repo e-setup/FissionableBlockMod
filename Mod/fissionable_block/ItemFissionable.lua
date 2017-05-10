@@ -61,11 +61,14 @@ function ItemFission:init()
 	end)
 end
 
-function ItemFission:ShowPropertyPage()
+function ItemFission:ShowPropertyPage(status)
 	if(not page) then
 		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
         page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
         page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
+	end
+	if(status) then
+		current_block_status = status;
 	end
 	if(current_block_status) then
 		local color = string.format("%d %d %d", current_block_status.color.r,

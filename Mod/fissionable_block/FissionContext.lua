@@ -242,7 +242,7 @@ function FissionContext:handleRightClickScene(event, result)
 				--print(string.format("%d %d %d",r,g,b));
 				ItemFissionable.SetProperty({type=0,color={r=r,g=g,b=b}});
 				commonlib.setfield("Mod.Fissionable.target_block",target_block);
-				ItemFissionable.ShowPropertyPage();
+				ItemFissionable.ShowPropertyPage({type=0,color={r=r,g=g,b=b}});
 				isProcessed = true;
 			end
 		end
