@@ -90,9 +90,9 @@ function ItemFission:ClosePropertyPage()
     if(target_block) then
         local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		if(type == 0) then
+		if(target_block.type == 0) then
 			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-			local color = r+math.ldexp(g, 8)+math.ldexp(g, 16);
+			local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
             ParaBlockWorld.SetBlockColor(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,color);
         else -- !!TODO:设置纹理未完成
             ParaBlockWorld.SetBlockTexture(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,"");
@@ -132,12 +132,10 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 			local worldName = ParaWorld.GetWorldName();
 			local curWorld = ParaBlockWorld.GetWorld(worldName);
 			if(current_block_status.type == 0) then
-				echo(current_block_status);
+				--echo(current_block_status);
 				local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-				local color = r+math.ldexp(g, 8)+math.ldexp(g, 16);
-				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24));
-				print("set blockcolor to "..color.." result:");
-				echo(ret);
+				local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
+				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",color);
 			end
 			return true;
 		end

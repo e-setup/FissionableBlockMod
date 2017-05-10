@@ -225,9 +225,11 @@ function FissionContext:handleRightClickScene(event, result)
 			elseif(event.ctrl_pressed and result and result.blockX) then
 				local target_block = {};
 				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
+				--!!TODO:获取当前方块是使用贴图还是颜色
+				target_block.type = 0; -- 贴图暂未实现 目前写定为使用颜色
 				local worldName = ParaWorld.GetWorldName();
 				local curWorld = ParaBlockWorld.GetWorld(worldName);
-				target_block.level= "";--ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+				target_block.level= ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
 				commonlib.setfield("Mod.Fissionable.target_block",target_block);
 				ItemFissionable.ShowPropertyPage();
 				isProcessed = true;
