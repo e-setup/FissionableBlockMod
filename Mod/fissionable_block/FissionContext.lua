@@ -78,12 +78,14 @@ function FissionContext:ClosePropertyPage()
     if(target_block) then
         local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
+		print("phf level "..target_block.level);
 		local param = {
-						blockX = target_block.position.x,
-						blockY = target_block.position.x,
-						blockZ = target_block.position.x
-					};
+			blockX = target_block.position.x,
+			blockY = target_block.position.y,
+			blockZ = target_block.position.z,
+			level = target_block.level;
+			--block_id = target_block.block_id
+		};
 		if(target_block.type == 0) then
 			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
 			param.color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
@@ -92,7 +94,10 @@ function FissionContext:ClosePropertyPage()
 			param.template_id = current_block_status.template_id or 1;
 			param.action = "set_texture";
 		end
-		local task = BlockFissionTask:new();
+		--echo(target_block)
+		--echo(param)
+		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
+		local task = BlockFissionTask:new(param);
 		task:Run();
     end
 	commonlib.setfield("Mod.Fissionable.target_block",nil);
@@ -310,22 +315,21 @@ function FissionContext:handleRightClickScene(event, result)
 					isProcessed = GameLogic.GetPlayerController():OnClickBlock(result.block_id, result.blockX, result.blockY, result.blockZ, event.mouse_button, EntityManager.GetPlayer(), result.side);
 				end
 			elseif(event.ctrl_pressed and result and result.blockX) then
-				local target_block = {};
-				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
-
-				--!!TODO:获取当前方块是使用贴图还是颜色
-				target_block.type = 0; -- 贴图暂未实现 目前写定为使用颜色
-				--local bit = require "bit";
-				
 				local worldName = ParaWorld.GetWorldName();
 				local curWorld = ParaBlockWorld.GetWorld(worldName);
-				local last_type = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
+				local target_block = {};
+				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
+				target_block.type = 0;
+				--print(string.format("x,y,z = %d,%d,%d",result.blockX,result.blockY,result.blockZ));
+				target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+				print(string.format("x,y,z,level = %d,%d,%d,'%s'",result.blockX,result.blockY,result.blockZ,target_block.level));
+				local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
+				--!!TODO:获取当前方块是使用贴图还是颜色
+				local last_type = ParaBlockWorld.GetBlockTexture(curWorld,result.blockX, result.blockY, result.blockZ,target_block.level);
 				if(last_type >= 0) then
 					target_block.type = 1;
 					target_block.template_id = last_type;
 				end
-				target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
-				local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
 				--print("phf getblockcolor = "..color);
 				--color = 0x00010203;
 				local b = bit.band(color,0x000000ff);

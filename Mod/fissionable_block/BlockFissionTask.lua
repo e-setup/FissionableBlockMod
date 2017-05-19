@@ -28,12 +28,15 @@ end
 function BlockFissionTask:Run()
 	self.finished = true;
 	self.history = {};
-	
+	if(not self.level) then
+		self.level= "";
+	end
 	local worldName = ParaWorld.GetWorldName()
 	local curWorld = ParaBlockWorld.GetWorld(worldName)
-	self.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,self.blockX,self.blockY,self.blockZ);
+	--print(string.format("x=%d,y=%d,z=%d",self.blockX,self.blockY,self.blockZ));
 	local last_type = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
 	self.last_type = 0;
+	self.last_color = ParaBlockWorld.GetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
 	if(last_type ~= -1) then
 		self.last_type = 1;--保存之前的贴图\颜色状态
 	end
@@ -43,9 +46,9 @@ function BlockFissionTask:Run()
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, "");
 	elseif(self.action == "set_texture") then
 		local tid = self.template_id or -1;
-		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, tid);
+		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level,tid);
 	elseif(self.action == "set_color") then
-		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.color);
+		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
 	end
 	local add_to_history;
 
@@ -56,6 +59,7 @@ function BlockFissionTask:Run()
 	
 	if(add_to_history) then
 		UndoManager.PushCommand(self);
+		--echo(self)
 	end
 
 	if(self.blockX) then
@@ -65,7 +69,8 @@ function BlockFissionTask:Run()
 end
 
 function BlockFissionTask:Redo()
-	if(self.blockX and self.block_id) then
+	--print(string.format("redo"));
+	if(self.blockX) then
 		--echo("phf  i am redoing");
 		--BlockEngine:SetBlock(self.blockX,self.blockY,self.blockZ, self.block_id, self.data, 3, self.entity_data);
 		local worldName = ParaWorld.GetWorldName()
@@ -78,15 +83,17 @@ function BlockFissionTask:Redo()
 			--print(ret);
 		elseif(self.action == "set_texture") then
 			local tid = self.template_id or -1;
-			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, tid);
+			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level, tid);
 		elseif(self.action == "set_color") then
-			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.color);
+			print(string.format("SetBlockColor redo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
+			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
 		end
 	end
 end
 
 function BlockFissionTask:Undo()
-	if(self.blockX and self.block_id) then
+	--print(string.format("undo"));
+	if(self.blockX) then
 		local worldName = ParaWorld.GetWorldName()
 		local curWorld = ParaBlockWorld.GetWorld(worldName)
 		if(self.action == "destory") then
@@ -95,9 +102,10 @@ function BlockFissionTask:Undo()
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 		elseif(self.action == "set_texture") then
 			local tid = self.template_id or -1;
-			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, tid);
+			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
 		elseif(self.action == "set_color") then
-			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.color);
+			print(string.format("SetBlockColor undo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
+			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.last_color);
 		end
 	end
 end
