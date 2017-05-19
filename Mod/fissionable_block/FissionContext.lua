@@ -16,7 +16,9 @@ NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/UndoManager.lua");
 NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/CreateFissionableBlockTask.lua");
 NPL.load("(gl)Mod/fissionable_block/BlockFissionTask.lua");
+NPL.load("(gl)script/apps/Aries/Creator/Game/Items/ItemClient.lua");
 
+local ItemClient = commonlib.gettable("MyCompany.Aries.Game.Items.ItemClient");
 local ItemFissionable = commonlib.gettable("Mod.Fissionable.ItemFissionable");
 local UndoManager = commonlib.gettable("MyCompany.Aries.Game.UndoManager");
 local GameLogic = commonlib.gettable("MyCompany.Aries.Game.GameLogic")
@@ -30,6 +32,7 @@ FissionContext:Property("Name", "FissionContext");
 
 local current_block_status = nil;
 local page = nil;
+local template_list = nil;
 
 function FissionContext:ctor()
 	self:EnableAutoCamera(true);
@@ -75,13 +78,22 @@ function FissionContext:ClosePropertyPage()
     if(target_block) then
         local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
+		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
+		local param = {
+						blockX = target_block.position.x,
+						blockY = target_block.position.x,
+						blockZ = target_block.position.x
+					};
 		if(target_block.type == 0) then
 			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-			local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
-            ParaBlockWorld.SetBlockColor(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,color);
-        else -- !!TODO:设置纹理未完成
-            ParaBlockWorld.SetBlockTexture(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,"");
+			param.color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
+			param.action = "set_color";
+        else
+			param.template_id = current_block_status.template_id or 1;
+			param.action = "set_texture";
 		end
+		local task = BlockFissionTask:new();
+		task:Run();
     end
 	commonlib.setfield("Mod.Fissionable.target_block",nil);
 	page = nil;
@@ -300,13 +312,18 @@ function FissionContext:handleRightClickScene(event, result)
 			elseif(event.ctrl_pressed and result and result.blockX) then
 				local target_block = {};
 				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
+
 				--!!TODO:获取当前方块是使用贴图还是颜色
 				target_block.type = 0; -- 贴图暂未实现 目前写定为使用颜色
 				--local bit = require "bit";
 				
 				local worldName = ParaWorld.GetWorldName();
 				local curWorld = ParaBlockWorld.GetWorld(worldName);
-				
+				local last_type = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
+				if(last_type >= 0) then
+					target_block.type = 1;
+					target_block.template_id = last_type;
+				end
 				target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
 				local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
 				--print("phf getblockcolor = "..color);
@@ -315,9 +332,10 @@ function FissionContext:handleRightClickScene(event, result)
 				local g = bit.band(bit.rshift(color, 8),0x000000ff);
 				local r = bit.band(bit.rshift(color, 16),0x000000ff);
 				--print(string.format("%d %d %d",r,g,b));
-				self:SetProperty({type=0,color={r=r,g=g,b=b}});
+				local param = {type=target_block.type,color={r=r,g=g,b=b},template_id=last_type};
+				self:SetProperty(param);
 				commonlib.setfield("Mod.Fissionable.target_block",target_block);
-				self:ShowPropertyPage({type=0,color={r=r,g=g,b=b}});
+				self:ShowPropertyPage(param);
 				isProcessed = true;
 			end
 		end
@@ -477,17 +495,27 @@ function FissionContext:GetTextureList()
 		{text="香蕉皮",value="banana_skin"},
 		{text="西瓜皮",value="water_mellon_skin"},
 	};
-	return texture_table;
+	if(not template_list) then
+		template_list = {};
+		local block_list = ItemClient.GetBlockDS("static");
+		--echo(block_list)
+		for i=1,#block_list do
+			template_list[#template_list+1] = {text=block_list[i].displayname,value=block_list[i].block_id};
+		end
+	end
+	return template_list;
 end
 
---需要传入{type=0|1,color=value,textureid=id}
+--需要传入{type=0|1,color=value,template_id=id}
 function FissionContext:SetProperty(property)
 	if(property) then
+		--echo(property);
+	--[[
 		if(property.type and property.type ~= 0) then
 			_guihelper.MessageBox("暂时不支持纹理贴图设置!");
 			current_block_status = nil;
 			return;
-		end
+		end]]
 		current_block_status = property;
 		--echo(current_block_status)
 	else
