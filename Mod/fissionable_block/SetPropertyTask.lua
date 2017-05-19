@@ -1,7 +1,7 @@
 --[[
 use the lib:
 ------------------------------------------------------------
-NPL.load("(gl)Mod/NPLCAD/SetPropertyTask.lua");
+NPL.load("(gl)Mod/fissionable_block/SetPropertyTask.lua");
 local SetPropertyTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.SetPropertyTask");
 local task = SetPropertyTask:new();
 task:Run();
@@ -93,12 +93,8 @@ end
 function SetPropertyTask:Run()
 	curInstance = self;
 	self.finished = false;
-	--_guihelper.MessageBox("fdfdfhdjfkdh js phf 2");
 	FissionContext:ApplyToDefaultContext();
 	self:LoadSceneContext();
-	--self:GetSceneContext():setMouseTracking(true);
-	--self:GetSceneContext():setCaptureMouse(true);
-	--self:ShowPage();
 end
 
 function SetPropertyTask:OnExit()
@@ -140,34 +136,6 @@ end
 
 function SetPropertyTask:Undo()
 end
-
-function SetPropertyTask:ShowPage()
---[[
-	local window = self:CreateGetToolWindow();
-	window:Show({
-		name="SetPropertyTask", 
-		url="Mod/fissionable_block/property.html",
-		alignment="_ctb", left=0, top=-20, width = 256, height = 64,
-	});]]
-	--[[System.App.Commands.Call("File.MCMLWindowFrame", {
-		url  = "Mod/fissionable_block/property.html", 
-		name = "SetPropertyTask", 
-		isShowTitleBar = true,
-		DestroyOnClose = true, -- prevent many ViewProfile pages staying in memory / false will only hide window
-		style = CommonCtrl.WindowFrame.ContainerStyle,
-		zorder = 0,
-		allowDrag = true,
-		bShow = true,
-		directPosition = true,
-			align = "_ctb",
-			x = 0,
-			y = -50,
-			width = 250,
-			height = 100,
-		cancelShowAnimation = true,
-	});]]
-end
-
 
 -- @param result: can be nil
 function SetPropertyTask:PickModelAtMouse(result)

@@ -2,7 +2,7 @@
 <script type="text/npl" src="SetPropertyTask.lua" refresh="false">
 <![CDATA[
     NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
-    ItemFissionable = commonlib.gettable("Mod.Fissionable.ItemFissionable");
+    FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
     local color = {r=255,b=255,g=255}
     local textureid = nil;
     local type = 0;
@@ -11,9 +11,9 @@
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
         if(should_update) then
-            ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+            FissionContext:SetProperty({type=type,color=color,textureid=textureid});
         end
-        ItemFissionable.ClosePropertyPage();
+        FissionContext:ClosePropertyPage();
         Page:Close();
     end
 
@@ -21,7 +21,7 @@
         if(r and g and b) then
             should_update = true;
             color = {r=r,g=g,b=b}
-            ItemFissionable.SetProperty({type=type,color=color,textureid=textureid});
+            FissionContext:SetProperty({type=type,color=color,textureid=textureid});
         end
     end
 
@@ -35,7 +35,7 @@
         type = Page:GetUIValue("tex_type");
     end
 
-    Page:SetNodeValue("blockcolor",ItemFissionable.GetCurrentColor());
+    Page:SetNodeValue("blockcolor",FissionContext:GetCurrentColor());
 ]]>
 </script>
 <aries:window mode="thin" style='width:250px;height:250px;color:#ffffff;' title='<%=L"可分裂方块属性" %>'>
@@ -46,7 +46,7 @@
     <hr />
     <div style="margin:10px;width:230px">
         <div><input type="radio" style="margin:2px" onclick="OnTypeChange()" name="tex_type" id="material" value="1"/><div style="float:left;" for="material"><%=L"材质"%></div></div>
-        <select name="texture" onselect="TextureChanged()" AllowUserEdit="false" class="mc_text" DataSource='<%=ItemFissionable.GetTextureList()%>' style="width:200px;height:30px;"/>
+        <select name="texture" onselect="TextureChanged()" AllowUserEdit="false" class="mc_text" DataSource='<%=FissionContext.GetTextureList()%>' style="width:200px;height:30px;"/>
     </div>
     <div style="margin:10px;width:230px">
         <input type="button" name="okButton" style="margin-left:60px;width:100px;height:30px;color:#ffffff;" value="确定" class="mc_small_button" onclick="hidepage()"/>

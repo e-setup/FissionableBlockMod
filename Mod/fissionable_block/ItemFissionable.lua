@@ -10,16 +10,16 @@ local DemoItem = commonlib.gettable("Mod.Fissionable.ItemFissionable");
 ------------------------------------------------------------
 ]]
 
+NPL.load("(gl)Mod/fissionable_block/FissionContext.lua");
+
 local block_types = commonlib.gettable("MyCompany.Aries.Game.block_types")
 local GameLogic = commonlib.gettable("MyCompany.Aries.Game.GameLogic")
 local ItemStack = commonlib.gettable("MyCompany.Aries.Game.Items.ItemStack");
+local FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
 
 local ItemFission = commonlib.inherit(commonlib.gettable("MyCompany.Aries.Game.Items.ItemToolBase"),commonlib.gettable("Mod.Fissionable.ItemFissionable"));
 
 block_types.RegisterItemClass("ItemFissionable", ItemFission);
-
-local current_block_status = nil;
-local page = nil;
 
 function ItemFission:ctor()
 	self.PageCtrl = nil;
@@ -61,65 +61,22 @@ function ItemFission:init()
 	end)
 end
 
-function ItemFission:ShowPropertyPage(status)
-	if(not page) then
-		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
-        page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
-        page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
-	end
-	if(status) then
-		current_block_status = status;
-	end
-	if(current_block_status) then
-		local color = string.format("%d %d %d", current_block_status.color.r,
-		 current_block_status.color.g, current_block_status.color.b);
-		--print("phf I am in ShowPropertyPage:"..color);
-		--echo(page);
-	end
-end
-
-function ItemFission:GetCurrentColor()
-	if(current_block_status) then
-		local color = string.format("%d %d %d", current_block_status.color.r,
-		 current_block_status.color.g, current_block_status.color.b);
-		--print("phf I am in ShowPropertyPage:"..color);
-		return color;
-	end
-	return "255 255 255";
-end
-
-function ItemFission:ClosePropertyPage()
-    local target_block = commonlib.getfield("Mod.Fissionable.target_block");
-    if(target_block) then
-        local worldName = ParaWorld.GetWorldName();
-		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		if(target_block.type == 0) then
-			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-			local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
-            ParaBlockWorld.SetBlockColor(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,color);
-        else -- !!TODO:设置纹理未完成
-            ParaBlockWorld.SetBlockTexture(curWorld,target_block.position.x,target_block.position.y,target_block.position.z,target_block.level,"");
-		end
-    end
-	commonlib.getfield("Mod.Fissionable.target_block",nil);
-	page = nil;
-end
-
 function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_region)
-	--_guihelper.MessageBox("test");
-	if(not current_block_status) then
-		self:ShowPropertyPage();
-		return;
-	end
-
 	if (itemStack and itemStack.count == 0) then
-		return;
-	elseif (entityPlayer and not entityPlayer:CanPlayerEdit(x,y,z, data, itemStack)) then
-		return;
-	elseif (self:CanPlaceOnSide(x,y,z,side, data, side_region, entityPlayer, itemStack)) then
+	end
+	if (entityPlayer and not entityPlayer:CanPlayerEdit(x,y,z, data, itemStack)) then
+	end
+	local canPlace = self:CanPlaceOnSide(x,y,z,side, data, side_region, entityPlayer, itemStack);
+	--echo(canPlace)
+	local param = {x=x,y=y,z=z,side=side, data=data, side_region=side_region, itemStack=itemStack}
+	--echo(param);
+	if (true) then
+		--_guihelper.MessageBox("pghf Im in");
 		local block_id = self.block_id;
 		local block_template = block_types.get(block_id);
+		--echo(block_template)
 		if(block_template) then
+			--_guihelper.MessageBox(string.format("pghf Im in2 ,x=%f,y=%f,z=%f",x,y,z));
 			data = data or block_template:GetMetaDataFromEnv(x, y, z, side, side_region);
 			--echo(data)
 			--[[
@@ -131,23 +88,35 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 					itemStack.count = itemStack.count - 1;
 				end
 			end]]
-			ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
-			local worldName = ParaWorld.GetWorldName();
-			local curWorld = ParaBlockWorld.GetWorld(worldName);
-			if(current_block_status.type == 0) then
-				--echo(current_block_status);
-				local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-				local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
-				local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",color);
+			
+			local current_block_status = FissionContext.GetCurrentBlockStatus();
+			if(not current_block_status) then
+				return false;
 			end
+			self:ApplyProperty(x,y,z,block_id,current_block_status);
 			return true;
 		end
+	else
+		_guihelper.MessageBox("can not create")
+	end
+end
+
+--call to apply the color/texture to the block
+function ItemFission:ApplyProperty(x,y,z,block_id,current_block_status)
+	ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
+	local worldName = ParaWorld.GetWorldName();
+	local curWorld = ParaBlockWorld.GetWorld(worldName);
+	if(current_block_status.type == 0) then
+		--echo(current_block_status);
+		local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
+		local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
+		local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",color);
 	end
 end
 
 -- called whenever this item is clicked on the user interface when it is holding in hand of a given player (current player). 
 function ItemFission:OnClickInHand(itemStack, entityPlayer)
-	self:ShowPropertyPage();
+	FissionContext:ShowPropertyPage();
 end
 
 -- virtual function: when selected in right hand
@@ -185,31 +154,9 @@ end
 -- virtual function: 
 function ItemFission:CreateTask(itemStack)
 	--print("phf -- task created");
-	NPL.load("(gl)Mod/fissionable_block/SetPropertyTask.lua");
-	local SetPropertyTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.SetPropertyTask");
-	local task = SetPropertyTask:new();
+	NPL.load("(gl)Mod/fissionable_block/SwitchToFissionableBlockTask.lua");
+	local SwitchToFissionableBlockTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.SwitchToFissionableBlockTask");
+	local task = SwitchToFissionableBlockTask:new();
 	task:SetItemStack(itemStack);
 	return task;
-end
-
-function ItemFission.GetTextureList()
-	local texture_table = {
-		{text="香蕉皮",value="banana_skin"},
-		{text="西瓜皮",value="water_mellon_skin"},
-	};
-	return texture_table;
-end
-
---需要传入{type=0|1,color=value,textureid=id}
-function ItemFission.SetProperty(property)
-	if(property) then
-		if(property.type and property.type ~= 0) then
-			_guihelper.MessageBox("暂时不支持纹理贴图设置!");
-			current_block_status = nil;
-			return;
-		end
-		current_block_status = property;
-	else
-		_guihelper.MessageBox("参数有误!");
-	end
 end
