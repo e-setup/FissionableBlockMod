@@ -18,6 +18,7 @@ NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/CreateFissionableBlockTask.lu
 NPL.load("(gl)Mod/fissionable_block/BlockFissionTask.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Items/ItemClient.lua");
 
+local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
 local ItemClient = commonlib.gettable("MyCompany.Aries.Game.Items.ItemClient");
 local ItemFissionable = commonlib.gettable("Mod.Fissionable.ItemFissionable");
 local UndoManager = commonlib.gettable("MyCompany.Aries.Game.UndoManager");
@@ -233,19 +234,7 @@ function FissionContext:handleLeftClickScene(event, result)
 						GameLogic.GetPlayerController():PickBlockAt(result.blockX, result.blockY, result.blockZ);
 					end
 				elseif(ctrl_pressed and result and result.blockX) then
-						local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
-						local param = {
-							action = "split",
-							blockX = result.blockX,
-							blockY = result.blockY,
-							blockZ = result.blockZ,
-							data=nil,
-							side = result.side,
-							side_region=result.side_region,
-							block_id = result.block_id,
-							entityPlayer=EntityManager.GetPlayer(),
-							itemStack=nil
-						};
+						local param = self:GenerateParamByAction("split",result);
 						local task = BlockFissionTask:new(param);
 						task:Run();
 				else
@@ -259,21 +248,14 @@ function FissionContext:handleLeftClickScene(event, result)
 							task:Run();
 						else
 							if(event.dragDist and event.dragDist<15) then
-								local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
-								local task = BlockFissionTask:new(
-								{
-									action = "destory",
-									blockX = result.blockX,
-									blockY = result.blockY,
-									blockZ = result.blockZ,
-									data=nil,
-									side = result.side,
-									side_region=result.side_region,
-									block_id = result.block_id,
-									entityPlayer=EntityManager.GetPlayer(),
-									itemStack=nil
-								})
-								task:Run();
+								if(result.block_id and result.block_id~=520) then -- hard coded. if current picking block isn't fissionable block.
+									self:TryDestroyBlock(result);
+								else
+									local param = self:GenerateParamByAction("destory",result);
+									--echo(param)
+									local task = BlockFissionTask:new(param);
+									task:Run();
+								end
 							end
 						end
 					end
@@ -525,4 +507,28 @@ function FissionContext:SetProperty(property)
 	else
 		_guihelper.MessageBox("参数有误!");
 	end
+end
+-- action = destory|split, result = mouse pick result
+function FissionContext:GenerateParamByAction(action,result)
+	local worldName = ParaWorld.GetWorldName();
+	local curWorld = ParaBlockWorld.GetWorld(worldName);
+	local level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+	local template_id = ParaBlockWorld.GetBlockTexture(curWorld,result.blockX,result.blockY,result.blockZ,level);
+	local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,level);
+	local param = {
+		action = action,
+		blockX = result.blockX,
+		blockY = result.blockY,
+		blockZ = result.blockZ,
+		template_id = template_id,
+		color = color,
+		level = level,
+		data=nil,
+		side = result.side,
+		side_region=result.side_region,
+		block_id = result.block_id,
+		entityPlayer=EntityManager.GetPlayer(),
+		itemStack=nil
+	};
+	return param;
 end
