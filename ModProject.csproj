@@ -45,9 +45,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="InstallPackages.bat" />
+    <None Include="Mod\fissionable_block\BlockFissionTask.lua" />
+    <None Include="Mod\fissionable_block\CreateFissionableBlockTask.lua" />
     <None Include="Mod\fissionable_block\FissionContext.lua" />
     <None Include="Mod\fissionable_block\ItemFissionable.lua" />
     <None Include="Mod\fissionable_block\SetPropertyTask.lua" />
+    <None Include="Mod\fissionable_block\SwitchToFissionableBlockTask.lua" />
     <None Include="README.md" />
     <None Include="Run.bat" />
   </ItemGroup>

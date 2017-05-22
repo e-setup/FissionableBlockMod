@@ -28,11 +28,13 @@ end
 function BlockFissionTask:Run()
 	self.finished = true;
 	self.history = {};
-	if(not self.level) then
-		self.level= "";
-	end
+
 	local worldName = ParaWorld.GetWorldName()
 	local curWorld = ParaBlockWorld.GetWorld(worldName)
+
+	if(not self.level) then
+		self.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,self.blockX,self.blockY,self.blockZ);
+	end
 	--print(string.format("x=%d,y=%d,z=%d",self.blockX,self.blockY,self.blockZ));
 	local last_type = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
 	self.last_type = 0;
@@ -42,6 +44,7 @@ function BlockFissionTask:Run()
 	end
 	if(self.action == "destory") then
 		ParaBlockWorld.DestroyBlock(curWorld, self.blockX,self.blockY,self.blockZ, "");
+		print(string.format("destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
 	elseif(self.action == "split") then
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, "");
 	elseif(self.action == "set_texture") then
@@ -98,13 +101,14 @@ function BlockFissionTask:Undo()
 		local curWorld = ParaBlockWorld.GetWorld(worldName)
 		if(self.action == "destory") then
 			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
+			print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
 		elseif(self.action == "split") then
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 		elseif(self.action == "set_texture") then
 			local tid = self.template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
 		elseif(self.action == "set_color") then
-			print(string.format("SetBlockColor undo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
+			--print(string.format("SetBlockColor undo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.last_color);
 		end
 	end
