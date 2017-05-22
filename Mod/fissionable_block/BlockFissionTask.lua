@@ -33,22 +33,19 @@ function BlockFissionTask:Run()
 	local curWorld = ParaBlockWorld.GetWorld(worldName)
 
 	if(not self.level) then
-		self.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,self.blockX,self.blockY,self.blockZ);
+		self.level = "";
 	end
 	--print(string.format("x=%d,y=%d,z=%d",self.blockX,self.blockY,self.blockZ));
-	local last_type = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
-	self.last_type = 0;
+	self.last_template_id = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
 	self.last_color = ParaBlockWorld.GetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
-	if(last_type ~= -1) then
-		self.last_type = 1;--保存之前的贴图\颜色状态
-	end
+
 	if(self.action == "destory") then
 		ParaBlockWorld.DestroyBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 		print(string.format("destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
 	elseif(self.action == "split") then
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 	elseif(self.action == "set_texture") then
-		local tid = self.template_id or -1;
+		local tid = self.template_id or 1;
 		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level,tid);
 	elseif(self.action == "set_color") then
 		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
@@ -112,7 +109,7 @@ function BlockFissionTask:Undo()
 		elseif(self.action == "split") then
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 		elseif(self.action == "set_texture") then
-			
+			tid = self.last_template_id or 1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
 		elseif(self.action == "set_color") then
 			--print(string.format("SetBlockColor undo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));

@@ -4,15 +4,11 @@
     NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
     FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
     local color = {r=255,b=255,g=255}
-    local template_id = nil;
+    local template_id = -1;
     local type = 0;
-    local should_update = false;
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
-        --if(should_update) then
-        --    FissionContext:SetProperty({type=type,color=color,template_id=template_id});
-        --end
         FissionContext:SetProperty({type=type,color=color,template_id=template_id});
         FissionContext:ClosePropertyPage();
         Page:Close();
@@ -20,19 +16,21 @@
 
     function ColorChanged(r,g,b)
         if(r and g and b) then
-            should_update = true;
             color = {r=r,g=g,b=b}
-            FissionContext:SetProperty({type=type,color=color,template_id=template_id});
+            --FissionContext:SetProperty({type=type,color=color,template_id=template_id});
+            Page:SetValue("tex_type","0");
+            type = 0;
         end
     end
 
     function TextureChanged(name)
         template_id = Page("#"..name):GetValue();
+        Page:SetValue("tex_type","1");
+        type = 1;
         --_guihelper.MessageBox(template_id);
     end
 
     function OnTypeChange(name)
-        should_update = true;
         type = Page:GetUIValue("tex_type");
     end
 
