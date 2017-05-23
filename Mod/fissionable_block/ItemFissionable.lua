@@ -111,6 +111,8 @@ function ItemFission:ApplyProperty(x,y,z,block_id,current_block_status)
 		local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
 		local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
 		local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",color);
+	elseif(current_block_status.type == 1) then
+		ParaBlockWorld.SetBlockTexture(curWorld, x, y,z,"",current_block_status.template_id);
 	end
 end
 

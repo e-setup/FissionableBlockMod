@@ -95,12 +95,13 @@ function FissionContext:ClosePropertyPage()
 			param.template_id = current_block_status.template_id or 1;
 			param.action = "set_texture";
 		end
-		echo("phf ClosePropertyPage param")
-		echo(param)
+		--echo("phf ClosePropertyPage param")
+		--echo(param)
 		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
 		local task = BlockFissionTask:new(param);
 		task:Run();
     end
+	echo(current_block_status)
 	commonlib.setfield("Mod.Fissionable.target_block",nil);
 	page = nil;
 end
