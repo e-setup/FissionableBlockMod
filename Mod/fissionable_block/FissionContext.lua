@@ -79,7 +79,7 @@ function FissionContext:ClosePropertyPage()
     if(target_block) then
         local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		print("phf level "..target_block.level);
+		--print("phf level "..target_block.level);
 		local param = {
 			blockX = target_block.position.x,
 			blockY = target_block.position.y,
@@ -87,14 +87,10 @@ function FissionContext:ClosePropertyPage()
 			level = target_block.level
 			--block_id = target_block.block_id
 		};
-		if(current_block_status.type == 0) then
-			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-			param.color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
-			param.action = "set_color";
-        else
-			param.template_id = current_block_status.template_id or 1;
-			param.action = "set_texture";
-		end
+		local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
+		param.color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
+		param.template_id = current_block_status.template_id or -1;
+		param.action = "set_property";
 		--echo("phf ClosePropertyPage param")
 		--echo(param)
 		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
