@@ -17,7 +17,7 @@
     function ColorChanged(r,g,b)
         if(r and g and b) then
             color = {r=r,g=g,b=b}
-            --FissionContext:SetProperty({type=type,color=color,template_id=template_id});
+            FissionContext:SetProperty({type=type,color=color,template_id=template_id});
             Page:SetValue("tex_type","0");
             type = 0;
         end

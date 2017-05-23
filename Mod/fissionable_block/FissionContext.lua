@@ -84,19 +84,19 @@ function FissionContext:ClosePropertyPage()
 			blockX = target_block.position.x,
 			blockY = target_block.position.y,
 			blockZ = target_block.position.z,
-			level = target_block.level;
+			level = target_block.level
 			--block_id = target_block.block_id
 		};
-		if(target_block.type == 0) then
+		if(current_block_status.type == 0) then
 			local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
 			param.color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
 			param.action = "set_color";
         else
-			param.template_id = target_block.template_id or 1;
+			param.template_id = current_block_status.template_id or 1;
 			param.action = "set_texture";
 		end
-		--echo(target_block)
-		--echo(param)
+		echo("phf ClosePropertyPage param")
+		echo(param)
 		local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
 		local task = BlockFissionTask:new(param);
 		task:Run();
@@ -495,7 +495,7 @@ end
 --需要传入{type=0|1,color=value,template_id=id}
 function FissionContext:SetProperty(property)
 	if(property) then
-		echo(property);
+		--echo(property);
 	--[[
 		if(property.type and property.type ~= 0) then
 			_guihelper.MessageBox("暂时不支持纹理贴图设置!");

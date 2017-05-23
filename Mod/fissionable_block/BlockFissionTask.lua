@@ -35,6 +35,9 @@ function BlockFissionTask:Run()
 	if(not self.level) then
 		self.level = "";
 	end
+	if(not self.color) then
+		self.color = 0;
+	end
 	--print(string.format("x=%d,y=%d,z=%d",self.blockX,self.blockY,self.blockZ));
 	self.last_template_id = ParaBlockWorld.GetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
 	self.last_color = ParaBlockWorld.GetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ,self.level);
@@ -46,8 +49,10 @@ function BlockFissionTask:Run()
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 	elseif(self.action == "set_texture") then
 		local tid = self.template_id or 1;
-		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level,tid);
+		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level,tid);
+		print(string.format("SetBlockTexture : x=%d,y=%d,z=%d,level=%s,template_id=%d",self.blockX,self.blockY,self.blockZ,  self.level,tid));
 	elseif(self.action == "set_color") then
+		print(string.format("SetBlockColor : x=%d,y=%d,z=%d,level=%s,color=%d",self.blockX,self.blockY,self.blockZ,  self.level,self.color));
 		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
 	end
 	local add_to_history;
@@ -84,8 +89,8 @@ function BlockFissionTask:Redo()
 		elseif(self.action == "set_texture") then
 			local tid = self.template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level, tid);
+			--ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
 		elseif(self.action == "set_color") then
-			print(string.format("SetBlockColor redo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
 		end
 	end
@@ -96,7 +101,7 @@ function BlockFissionTask:Undo()
 	if(self.blockX) then
 		local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		local tid = self.template_id or -1;
+		local tid = self.template_id or 1;
 		if(self.action == "destory") then
 			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 			if(tid ~= -1) then
