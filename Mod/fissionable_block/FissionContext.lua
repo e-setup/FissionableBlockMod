@@ -101,7 +101,7 @@ function FissionContext:ClosePropertyPage()
 		local task = BlockFissionTask:new(param);
 		task:Run();
     end
-	echo(current_block_status)
+	--echo(current_block_status)
 	commonlib.setfield("Mod.Fissionable.target_block",nil);
 	page = nil;
 end
@@ -374,7 +374,19 @@ function FissionContext:handleRightClickScene(event, result)
 					end
 				end
 			end
-			local param = {blockX = x,blockY = y, blockZ = z, entityPlayer = EntityManager.GetPlayer(), block_id = 520, side = result.side, from_block_id = result.block_id, side_region=side_region,current_block_status = current_block_status};
+			local param = {
+				blockX = x,
+				blockY = y,
+				blockZ = z,
+				entityPlayer = EntityManager.GetPlayer(),
+				block_id = 520,
+				side = result.side,
+				from_block_id = result.block_id,
+				side_region=side_region,
+				current_block_status = current_block_status
+			};
+			--print("create f block param");
+			--echo(param)
 			NPL.load("(gl)Mod/fissionable_block/CreateFissionableBlockTask.lua");
 			local CreateFissionableBlockTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.CreateFissionableBlock");
 			local task = CreateFissionableBlockTask:new(param);
@@ -478,18 +490,15 @@ function FissionContext:keyPressEvent(event)
 end
 
 function FissionContext:GetTextureList()
-	local texture_table = {
-		{text="香蕉皮",value="banana_skin"},
-		{text="西瓜皮",value="water_mellon_skin"},
-	};
 	if(not template_list) then
 		template_list = {};
 		local block_list = ItemClient.GetBlockDS("static");
 		--echo(block_list)
 		for i=1,#block_list do
-			template_list[#template_list+1] = {text=block_list[i].displayname,value=block_list[i].block_id};
+			template_list[#template_list+1] = {text=block_list[i].displayname,value=tostring(block_list[i].block_id)};
 		end
 	end
+	--echo(template_list)
 	return template_list;
 end
 

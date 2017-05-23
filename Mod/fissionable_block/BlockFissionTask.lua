@@ -47,13 +47,12 @@ function BlockFissionTask:Run()
 		print(string.format("destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
 	elseif(self.action == "split") then
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-	elseif(self.action == "set_texture") then
-		local tid = self.template_id or 1;
+	elseif(self.action == "set_texture" or self.action == "set_color") then
+		local tid = self.template_id or -1;
 		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level,tid);
-		print(string.format("SetBlockTexture : x=%d,y=%d,z=%d,level=%s,template_id=%d",self.blockX,self.blockY,self.blockZ,  self.level,tid));
-	elseif(self.action == "set_color") then
-		print(string.format("SetBlockColor : x=%d,y=%d,z=%d,level=%s,color=%d",self.blockX,self.blockY,self.blockZ,  self.level,self.color));
 		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
+		print(string.format("SetBlockTexture and color: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
+		self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 	end
 	local add_to_history;
 
@@ -86,12 +85,12 @@ function BlockFissionTask:Redo()
 			local ret = ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 			--print("phf said that redo SplitBlock result is:");
 			--print(ret);
-		elseif(self.action == "set_texture") then
+		elseif(self.action == "set_texture" or self.action == "set_color") then
 			local tid = self.template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level, tid);
-			--ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
-		elseif(self.action == "set_color") then
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
+			print(string.format("redo SetBlockTexture and color: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
+		self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 		end
 	end
 end
@@ -101,24 +100,21 @@ function BlockFissionTask:Undo()
 	if(self.blockX) then
 		local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		local tid = self.template_id or 1;
+		local tid = self.template_id or -1;
 		if(self.action == "destory") then
 			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-			if(tid ~= -1) then
-				ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,tid);
-			else
-				ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.color);
-			end
+			ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,tid);
+			ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.color);
 			print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
-			self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
+				self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 		elseif(self.action == "split") then
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-		elseif(self.action == "set_texture") then
-			tid = self.last_template_id or 1;
+		elseif(self.action == "set_texture" or self.action == "set_color") then
+			tid = self.last_template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
-		elseif(self.action == "set_color") then
-			--print(string.format("SetBlockColor undo x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.last_color);
+			print(string.format("undo SetBlockColor x=%d,y=%d,z=%d,color=%d,last_color=%d,level=%s",
+				self.blockX,self.blockY,self.blockZ,self.color,self.last_color,self.level));
 		end
 	end
 end

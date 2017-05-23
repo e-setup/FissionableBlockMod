@@ -32,6 +32,7 @@ end
 function CreateFissionableBlock:TryCreateSingleBlock()
 	local item = ItemClient.GetItem(self.block_id);
 	if(item) then
+		item.current_block_status = self.current_block_status;
 		local entityPlayer = self.entityPlayer;
 		local itemStack;
 		local isUsed;
@@ -118,17 +119,13 @@ end
 
 function CreateFissionableBlock:Redo()
 	if(self.blockX and self.block_id) then
-		--echo("phf  i am redoing");
-		BlockEngine:SetBlock(self.blockX,self.blockY,self.blockZ, self.block_id, self.data, 3, self.entity_data);
-		if(self.current_block_status) then
-			NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
-			local Item = commonlib.gettable("Mod.Fissionable.ItemFissionable");
-			Item:ApplyProperty(self.blockX,self.blockY,self.blockZ,self.block_id,self.current_block_status);
-		end
+		echo("CreateFissionableBlock phf  i am redoing");
+		self:TryCreateSingleBlock();
 	end
 end
 
 function CreateFissionableBlock:Undo()
+	echo("CreateFissionableBlock phf  i am undoing");
 	if(self.blockX and self.block_id) then
 		BlockEngine:SetBlock(self.blockX,self.blockY,self.blockZ, self.last_block_id or 0, self.last_block_data,3, self.last_entity_data);
 	end

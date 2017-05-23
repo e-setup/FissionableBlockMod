@@ -9,7 +9,7 @@
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
-        FissionContext:SetProperty({type=type,color=color,template_id=template_id});
+        FissionContext:SetProperty({type=type,color=color,template_id=tonumber(template_id)});
         FissionContext:ClosePropertyPage();
         Page:Close();
     end
@@ -17,8 +17,9 @@
     function ColorChanged(r,g,b)
         if(r and g and b) then
             color = {r=r,g=g,b=b}
-            FissionContext:SetProperty({type=type,color=color,template_id=template_id});
+            FissionContext:SetProperty({type=type,color=color,template_id=tonumber(template_id)});
             Page:SetValue("tex_type","0");
+            template_id = -1;
             type = 0;
         end
     end
@@ -26,6 +27,7 @@
     function TextureChanged(name)
         template_id = Page("#"..name):GetValue();
         Page:SetValue("tex_type","1");
+        color = {r=255,g=255,b=255}
         type = 1;
         --_guihelper.MessageBox(template_id);
     end
@@ -35,10 +37,14 @@
     end
 
     Page:SetNodeValue("blockcolor",FissionContext:GetCurrentColor());
+    --Page:SetValue("texture", L"52");
+    --Page:SetValue("tex_type","1");
     local default_status = FissionContext:GetCurrentBlockStatus();
+    print("default_status")
+    echo(default_status)
     if(default_status and default_status.template_id and default_status.template_id>=0) then
         Page:SetValue("tex_type","1");
-        Page:SetValue("texture", default_status.template_id);
+        --Page:SetValue("texture", tostring(default_status.template_id));
     end
     ]]>
 </script>

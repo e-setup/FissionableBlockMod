@@ -89,11 +89,11 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 				end
 			end]]
 			
-			local current_block_status = FissionContext.GetCurrentBlockStatus();
+			local current_block_status = self.current_block_status;--FissionContext.GetCurrentBlockStatus();
 			if(not current_block_status) then
 				return false;
 			end
-			self:ApplyProperty(x,y,z,block_id,current_block_status);
+			self:ApplyProperty(x,y,z,block_id,"",current_block_status);
 			return true;
 		end
 	else
@@ -102,18 +102,14 @@ function ItemFission:TryCreate(itemStack, entityPlayer, x,y,z, side, data, side_
 end
 
 --call to apply the color/texture to the block
-function ItemFission:ApplyProperty(x,y,z,block_id,current_block_status)
+function ItemFission:ApplyProperty(x,y,z,block_id,level,current_block_status)
 	ParaTerrain.SetBlockTemplateByIdx(x,y,z,block_id);
 	local worldName = ParaWorld.GetWorldName();
 	local curWorld = ParaBlockWorld.GetWorld(worldName);
-	if(current_block_status.type == 0) then
-		--echo(current_block_status);
-		local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
-		local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
-		local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,"",color);
-	elseif(current_block_status.type == 1) then
-		ParaBlockWorld.SetBlockTexture(curWorld, x, y,z,"",current_block_status.template_id);
-	end
+	local r,g,b = current_block_status.color.r,current_block_status.color.g,current_block_status.color.b;
+	local color = math.ldexp(r, 16)+math.ldexp(g, 8)+b+math.ldexp(15,24);
+	local ret = ParaBlockWorld.SetBlockColor(curWorld, x, y,z,level,color);
+	ParaBlockWorld.SetBlockTexture(curWorld, x, y,z,level,current_block_status.template_id);
 end
 
 -- called whenever this item is clicked on the user interface when it is holding in hand of a given player (current player). 
