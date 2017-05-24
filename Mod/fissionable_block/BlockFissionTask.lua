@@ -109,7 +109,7 @@ function BlockFissionTask:Undo()
 				self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 		elseif(self.action == "split") then
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-		elseif(self.action == "set_texture") then
+		elseif(self.action == "set_property") then
 			tid = self.last_template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.last_color);

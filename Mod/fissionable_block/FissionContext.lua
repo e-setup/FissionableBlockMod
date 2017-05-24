@@ -11,12 +11,14 @@ local FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext")
 FissionContext:ApplyToDefaultContext();
 ------------------------------------------------------------
 ]]
+
 NPL.load("(gl)script/apps/Aries/Creator/Game/SceneContext/BaseContext.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/UndoManager.lua");
 NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Tasks/CreateFissionableBlockTask.lua");
 NPL.load("(gl)Mod/fissionable_block/BlockFissionTask.lua");
 NPL.load("(gl)script/apps/Aries/Creator/Game/Items/ItemClient.lua");
+NPL.load("(gl)Mod/fissionable_block/DestroyFissionableBlockTask.lua");
 
 local BlockFissionTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.BlockFissionTask");
 local ItemClient = commonlib.gettable("MyCompany.Aries.Game.Items.ItemClient");
@@ -40,19 +42,22 @@ function FissionContext:ctor()
 end
 
 function FissionContext:ShowPropertyPage(status)
-	if(not page) then
-		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
-        page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
-        page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
-	end
 	if(status) then
 		current_block_status = status;
 	end
-	if(current_block_status) then
-		local color = string.format("%d %d %d", current_block_status.color.r,
-		 current_block_status.color.g, current_block_status.color.b);
-		--print("phf I am in ShowPropertyPage:"..color);
-		--echo(page);
+	if(not page) then
+		NPL.load("(gl)script/kids/3DMapSystemApp/mcml/PageCtrl.lua");
+        page = Map3DSystem.mcml.PageCtrl:new({url="Mod/fissionable_block/property.html",allowDrag=true});
+		--print("ShowPropertyPage phf current_block_status");
+		--echo(current_block_status)
+        page:Create("ItemFission.PropertyPage", nil, "_ctb", 0, -50, 250, 250);
+		
+        page:SetValue("texture", "52");
+		page:SetValue("tex_type","0");
+        if(current_block_status and current_block_status.template_id and current_block_status.template_id>=0) then
+            page:SetValue("tex_type","1");
+            page:SetValue("texture", tostring(current_block_status.template_id));
+        end
 	end
 end
 
@@ -60,8 +65,8 @@ end
 function FissionContext:GetCurrentColor()
 	if(current_block_status) then
 		local color = string.format("%d %d %d", current_block_status.color.r,
-		 current_block_status.color.g, current_block_status.color.b);
-		--print("phf I am in ShowPropertyPage:"..color);
+		current_block_status.color.g, current_block_status.color.b);
+		print("phf I am in ShowPropertyPage:"..color);
 		return color;
 	end
 	return "255 255 255";
@@ -231,9 +236,11 @@ function FissionContext:handleLeftClickScene(event, result)
 						GameLogic.GetPlayerController():PickBlockAt(result.blockX, result.blockY, result.blockZ);
 					end
 				elseif(ctrl_pressed and result and result.blockX) then
+					if(result.block_id and result.block_id==520) then
 						local param = self:GenerateParamByAction("split",result);
 						local task = BlockFissionTask:new(param);
 						task:Run();
+					end
 				else
 					-- left click to delete the current point
 					if(result and result.blockX) then
@@ -248,10 +255,19 @@ function FissionContext:handleLeftClickScene(event, result)
 								if(result.block_id and result.block_id~=520) then -- hard coded. if current picking block isn't fissionable block.
 									self:TryDestroyBlock(result);
 								else
-									local param = self:GenerateParamByAction("destory",result);
+									local worldName = ParaWorld.GetWorldName();
+									local curWorld = ParaBlockWorld.GetWorld(worldName);
+									local splitLevel = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+									if(#splitLevel > 0) then
+										local param = self:GenerateParamByAction("destory",result);
 									--echo(param)
-									local task = BlockFissionTask:new(param);
-									task:Run();
+										local task = BlockFissionTask:new(param);
+										task:Run();
+									else
+										local DestroyFissionableBlockTask = commonlib.gettable("MyCompany.Aries.Game.Tasks.DestroyFissionableBlockTask");
+										local task = DestroyFissionableBlockTask:new({blockX = result.blockX,blockY = result.blockY, blockZ = result.blockZ, block_id=result.block_id})
+										task:Run();
+									end
 								end
 							end
 						end
@@ -294,31 +310,33 @@ function FissionContext:handleRightClickScene(event, result)
 					isProcessed = GameLogic.GetPlayerController():OnClickBlock(result.block_id, result.blockX, result.blockY, result.blockZ, event.mouse_button, EntityManager.GetPlayer(), result.side);
 				end
 			elseif(event.ctrl_pressed and result and result.blockX) then
-				local worldName = ParaWorld.GetWorldName();
-				local curWorld = ParaBlockWorld.GetWorld(worldName);
-				local target_block = {};
-				target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
-				target_block.type = 0;
-				--print(string.format("x,y,z = %d,%d,%d",result.blockX,result.blockY,result.blockZ));
-				target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
-				print(string.format("x,y,z,level = %d,%d,%d,'%s'",result.blockX,result.blockY,result.blockZ,target_block.level));
-				local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
-				--!!TODO:获取当前方块是使用贴图还是颜色
-				local last_type = ParaBlockWorld.GetBlockTexture(curWorld,result.blockX, result.blockY, result.blockZ,target_block.level);
-				if(last_type >= 0) then
-					target_block.type = 1;
-					target_block.template_id = last_type;
+				if(result.block_id == 520) then
+					local worldName = ParaWorld.GetWorldName();
+					local curWorld = ParaBlockWorld.GetWorld(worldName);
+					local target_block = {};
+					target_block.position= {x=result.blockX,y=result.blockY,z=result.blockZ};
+					target_block.type = 0;
+					--print(string.format("x,y,z = %d,%d,%d",result.blockX,result.blockY,result.blockZ));
+					target_block.level = ParaBlockWorld.GetBlockSplitLevel(curWorld,result.blockX,result.blockY,result.blockZ);
+					print(string.format("x,y,z,level = %d,%d,%d,'%s'",result.blockX,result.blockY,result.blockZ,target_block.level));
+					local color = ParaBlockWorld.GetBlockColor(curWorld,result.blockX,result.blockY,result.blockZ,target_block.level);
+					--!!TODO:获取当前方块是使用贴图还是颜色
+					local last_type = ParaBlockWorld.GetBlockTexture(curWorld,result.blockX, result.blockY, result.blockZ,target_block.level);
+					if(last_type >= 0) then
+						target_block.type = 1;
+						target_block.template_id = last_type;
+					end
+					--print("phf getblockcolor = "..color);
+					--color = 0x00010203;
+					local b = bit.band(color,0x000000ff);
+					local g = bit.band(bit.rshift(color, 8),0x000000ff);
+					local r = bit.band(bit.rshift(color, 16),0x000000ff);
+					--print(string.format("%d %d %d",r,g,b));
+					local param = {type=target_block.type,color={r=r,g=g,b=b},template_id=last_type};
+					self:SetProperty(param);
+					commonlib.setfield("Mod.Fissionable.target_block",target_block);
+					self:ShowPropertyPage(param);
 				end
-				--print("phf getblockcolor = "..color);
-				--color = 0x00010203;
-				local b = bit.band(color,0x000000ff);
-				local g = bit.band(bit.rshift(color, 8),0x000000ff);
-				local r = bit.band(bit.rshift(color, 16),0x000000ff);
-				--print(string.format("%d %d %d",r,g,b));
-				local param = {type=target_block.type,color={r=r,g=g,b=b},template_id=last_type};
-				self:SetProperty(param);
-				commonlib.setfield("Mod.Fissionable.target_block",target_block);
-				self:ShowPropertyPage(param);
 				isProcessed = true;
 			end
 		end
@@ -491,6 +509,7 @@ function FissionContext:GetTextureList()
 		local block_list = ItemClient.GetBlockDS("static");
 		--echo(block_list)
 		for i=1,#block_list do
+			--template_list[#template_list+1] = {text=block_list[i].displayname,value=tostring(i),id_value=tostring(block_list[i].block_id)};
 			template_list[#template_list+1] = {text=block_list[i].displayname,value=tostring(block_list[i].block_id)};
 		end
 	end
@@ -498,7 +517,7 @@ function FissionContext:GetTextureList()
 	return template_list;
 end
 
---需要传入{type=0|1,color=value,template_id=id}
+--需要传入{color=value,template_id=id}
 function FissionContext:SetProperty(property)
 	if(property) then
 		--echo(property);
@@ -509,6 +528,7 @@ function FissionContext:SetProperty(property)
 			return;
 		end]]
 		current_block_status = property;
+		--print("phf SetProperty current_block_status");
 		--echo(current_block_status)
 	else
 		_guihelper.MessageBox("参数有误!");

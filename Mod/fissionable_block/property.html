@@ -1,15 +1,21 @@
 <pe:mcml>
-<script type="text/npl" src="SetPropertyTask.lua" refresh="false">
+<script type="text/npl" refresh="false">
 <![CDATA[
+
     NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
     FissionContext = commonlib.gettable("Mod.FissionableBlock.FissionContext");
+    local status = FissionContext:GetCurrentBlockStatus();
     local color = {r=255,b=255,g=255}
+    if(status) then
+        color = status.color;
+    end
+    
     local template_id = -1;
-    local type = 0;
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
-        FissionContext:SetProperty({type=type,color=color,template_id=tonumber(template_id)});
+        type = Page("#tex_type"):GetValue();
+        FissionContext:SetProperty({color=color,template_id=tonumber(template_id)});
         FissionContext:ClosePropertyPage();
         Page:Close();
     end
@@ -17,10 +23,8 @@
     function ColorChanged(r,g,b)
         if(r and g and b) then
             color = {r=r,g=g,b=b}
-            FissionContext:SetProperty({type=type,color=color,template_id=tonumber(template_id)});
             Page:SetValue("tex_type","0");
             template_id = -1;
-            type = 0;
         end
     end
 
@@ -28,24 +32,15 @@
         template_id = Page("#"..name):GetValue();
         Page:SetValue("tex_type","1");
         color = {r=255,g=255,b=255}
-        type = 1;
         --_guihelper.MessageBox(template_id);
     end
 
     function OnTypeChange(name)
-        type = Page:GetUIValue("tex_type");
+        --type = Page:GetUIValue("tex_type");
     end
 
     Page:SetNodeValue("blockcolor",FissionContext:GetCurrentColor());
-    --Page:SetValue("texture", L"52");
-    --Page:SetValue("tex_type","1");
-    local default_status = FissionContext:GetCurrentBlockStatus();
-    print("default_status")
-    echo(default_status)
-    if(default_status and default_status.template_id and default_status.template_id>=0) then
-        Page:SetValue("tex_type","1");
-        --Page:SetValue("texture", tostring(default_status.template_id));
-    end
+
     ]]>
 </script>
 <aries:window mode="thin" style='width:250px;height:250px;color:#ffffff;' title='<%=L"可分裂方块属性" %>'>
