@@ -100,13 +100,13 @@ function BlockFissionTask:Undo()
 	if(self.blockX) then
 		local worldName = ParaWorld.GetWorldName();
 		local curWorld = ParaBlockWorld.GetWorld(worldName);
-		local tid = self.template_id or -1;
+		local tid = self.last_template_id or -1;
 		if(self.action == "destory") then
-			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-			ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,tid);
-			ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.color);
-			print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
-				self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
+			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level,self.last_template_id,self.last_color);
+			--ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,tid);
+			--ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.last_color);
+			print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s,last_template_id=%d,last_color=%d",
+				self.blockX,self.blockY,self.blockZ,  self.level,self.last_template_id,self.last_color));
 		elseif(self.action == "split") then
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 		elseif(self.action == "set_property") then
