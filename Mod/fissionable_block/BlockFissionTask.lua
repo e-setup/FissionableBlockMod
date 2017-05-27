@@ -44,15 +44,18 @@ function BlockFissionTask:Run()
 
 	if(self.action == "destory") then
 		ParaBlockWorld.DestroyBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
-		print(string.format("destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
+		--print(string.format("destory block : x=%d,y=%d,z=%d,level=%s",self.blockX,self.blockY,self.blockZ,  self.level));
 	elseif(self.action == "split") then
 		ParaBlockWorld.SplitBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
 	elseif(self.action == "set_property") then
-		local tid = self.template_id or -1;
+		local tid = self.template_id or 520;
+		if(self.template_id == -1) then
+			tid = 520;
+		end
 		ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level,tid);
 		ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
-		print(string.format("set_property: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
-		self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
+		--print(string.format("set_property: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
+		--	self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 	end
 	local add_to_history;
 
@@ -89,8 +92,8 @@ function BlockFissionTask:Redo()
 			local tid = self.template_id or -1;
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ,  self.level, tid);
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.color);
-			print(string.format("redo SetBlockTexture and color: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
-		self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
+			--print(string.format("redo SetBlockTexture and color: x=%d,y=%d,z=%d,level=%s,template_id=%d,color=%d",
+			--	self.blockX,self.blockY,self.blockZ,  self.level,tid,self.color));
 		end
 	end
 end
@@ -105,12 +108,18 @@ function BlockFissionTask:Undo()
 			ParaBlockWorld.RestoreBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level,self.last_template_id,self.last_color);
 			--ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,tid);
 			--ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.last_color);
-			print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s,last_template_id=%d,last_color=%d",
-				self.blockX,self.blockY,self.blockZ,  self.level,self.last_template_id,self.last_color));
+			--print(string.format("undo destory block : x=%d,y=%d,z=%d,level=%s,last_template_id=%d,last_color=%d",
+			--	self.blockX,self.blockY,self.blockZ,  self.level,self.last_template_id,self.last_color));
 		elseif(self.action == "split") then
+			--ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level,self.last_template_id,self.last_color);
 			ParaBlockWorld.MergeBlock(curWorld, self.blockX,self.blockY,self.blockZ, self.level);
+			ParaBlockWorld.SetBlockTexture(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.last_template_id);
+			ParaBlockWorld.SetBlockColor(curWorld,self.blockX,self.blockY,self.blockZ, self.level,self.last_color);
 		elseif(self.action == "set_property") then
-			tid = self.last_template_id or -1;
+			tid = self.last_template_id or 520;
+			if(self.last_template_id == -1) then
+				tid = 520;
+			end
 			ParaBlockWorld.SetBlockTexture(curWorld, self.blockX,self.blockY,self.blockZ, self.level, tid);
 			ParaBlockWorld.SetBlockColor(curWorld, self.blockX,self.blockY,self.blockZ, self.level, self.last_color);
 			print(string.format("undo set_property x=%d,y=%d,z=%d,color=%d,last_color=%d,last_template_id=%d,level=%s",

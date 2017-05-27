@@ -66,7 +66,7 @@ function FissionContext:GetCurrentColor()
 	if(current_block_status) then
 		local color = string.format("%d %d %d", current_block_status.color.r,
 		current_block_status.color.g, current_block_status.color.b);
-		print("phf I am in ShowPropertyPage:"..color);
+		--print("phf I am in ShowPropertyPage:"..color);
 		return color;
 	end
 	return "255 255 255";

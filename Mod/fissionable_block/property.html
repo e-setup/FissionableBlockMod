@@ -1,5 +1,5 @@
 <pe:mcml>
-<script type="text/npl" refresh="false">
+<script type="text/npl" refresh="true">
 <![CDATA[
 
     NPL.load("(gl)Mod/fissionable_block/ItemFissionable.lua");
@@ -7,14 +7,19 @@
     local status = FissionContext:GetCurrentBlockStatus();
     local color = {r=255,b=255,g=255}
     if(status) then
-        color = status.color;
+        color = status.color; -- template_id本应也在此做默认值恢复。但在这里设置没有生效，所以在FissionContext:ShowPropertyPage(status)里设置
     end
     
     local template_id = -1;
 
     function hidepage(name)
         --_guihelper.MessageBox(string.format("current choise:%d\n",Page("#tex_type"):GetValue()));
-        type = Page("#tex_type"):GetValue();
+        local type = Page:GetUIValue("tex_type");
+        if(tonumber(type) == 1) then
+            template_id = Page("#texture"):GetValue();
+            color = {r=255,b=255,g=255}
+            --_guihelper.MessageBox(template_id);
+        end
         FissionContext:SetProperty({color=color,template_id=tonumber(template_id)});
         FissionContext:ClosePropertyPage();
         Page:Close();
@@ -36,10 +41,17 @@
     end
 
     function OnTypeChange(name)
-        --type = Page:GetUIValue("tex_type");
+        local type = Page:GetUIValue("tex_type");
+        if(type == 1) then
+            template_id = Page("#texture"):GetValue();
+            _guihelper.MessageBox(template_id);
+        end
     end
 
     Page:SetNodeValue("blockcolor",FissionContext:GetCurrentColor());
+
+    print("Page:SetNodeValue color")
+    echo(color)
 
     ]]>
 </script>
